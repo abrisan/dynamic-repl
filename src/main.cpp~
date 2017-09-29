@@ -15,6 +15,6 @@ int main()
 {
     std::shared_ptr<repl_options> options(new repl_options);
         
-    options->parse_file("/Users/livecode/Desktop/TripSLang/TripSLang/options.config");
+    options->parse_file("/options.config");
     main_loop(options);
 }
