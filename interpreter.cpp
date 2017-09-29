@@ -40,7 +40,14 @@ std::shared_ptr<std::string> interpreter::format_history_for_string()
         ++i;
         ret -> append("\n");
         ret -> append(std::to_string(i) + ". ");
-        ret -> append(s);
+        if (s == "")
+        {
+            ret -> append("(implicit history)");
+        }
+        else
+        {
+            ret -> append(s);
+        }
     }
         
     return std::shared_ptr<std::string>(ret);
