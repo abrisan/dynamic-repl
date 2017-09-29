@@ -10,6 +10,7 @@ clean:
 	rm -rf bin/*
 	rm ./start
 all:
+	mkdir bin
 	$(MAKE) clean
 	$(MAKE) compile
 	$(MAKE) link
