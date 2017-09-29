@@ -16,10 +16,10 @@
 class repl_options
 {
 private:
-	std::unique_ptr<std::unordered_map<std::string, std::string>> selected_options;
+    std::unique_ptr<std::unordered_map<std::string, std::string>> selected_options;
     PARSE_RESULT process_option(std::string const &s);
 public:
-	repl_options() : selected_options(new std::unordered_map<std::string, std::string>) {}
+    repl_options() : selected_options(new std::unordered_map<std::string, std::string>) {}
     PARSE_RESULT parse_file(std::string relative_path);
     std::string get_option_with_key(std::string const &name) const;
 };

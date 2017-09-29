@@ -11,7 +11,7 @@
 
 std::unique_ptr<std::vector<std::string>> split(std::string const &input, char const *delimiter)
 {
-	char delim;
+    char delim;
     if (delimiter == nullptr)
     {
         delim = ' ';
@@ -23,7 +23,7 @@ std::unique_ptr<std::vector<std::string>> split(std::string const &input, char c
     
     size_t i = 0;
     
-	std::unique_ptr<std::vector<std::string>> result(new std::vector<std::string>);
+    std::unique_ptr<std::vector<std::string>> result(new std::vector<std::string>);
     
     std::string s;
     
@@ -40,12 +40,12 @@ std::unique_ptr<std::vector<std::string>> split(std::string const &input, char c
         }
         ++i;
     }
-	
-	if (s != "")
-	{
-		result->push_back(s);
-	}
-	
+        
+    if (s != "")
+    {
+        result->push_back(s);
+    }
+        
     return result;
 }
 

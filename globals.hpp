@@ -29,7 +29,7 @@ static std::vector<std::string> SPECIAL_STRINGS({
     EXIT_REPL,
     REPL_HISTORY,
     REPL_CLEAR_HISTORY,
-	REPL_LOAD_GRAMMAR
+        REPL_LOAD_GRAMMAR
 });
 
 

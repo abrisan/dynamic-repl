@@ -13,8 +13,8 @@
 
 int main()
 {
-	std::shared_ptr<repl_options> options(new repl_options);
-	
-	options->parse_file("/Users/livecode/Desktop/TripSLang/TripSLang/options.config");
+    std::shared_ptr<repl_options> options(new repl_options);
+        
+    options->parse_file("/Users/livecode/Desktop/TripSLang/TripSLang/options.config");
     main_loop(options);
 }
