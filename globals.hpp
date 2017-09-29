@@ -20,16 +20,18 @@
 #define REPL_HISTORY "history"
 #define REPL_CLEAR_HISTORY "clearhist"
 #define REPL_LOAD_GRAMMAR "load_grammar"
+#define REPL_RUN_HIST ":run"
 
 #define EXIT_REPL_SYSCALL 1
-#define SHOW_REPL_HISTORY -1
+#define RUN_REPL_HISTORY_SYSCALL -1
 #define NORM_SYSCALL 0
 
 static std::vector<std::string> SPECIAL_STRINGS({
     EXIT_REPL,
     REPL_HISTORY,
     REPL_CLEAR_HISTORY,
-        REPL_LOAD_GRAMMAR
+    REPL_LOAD_GRAMMAR,
+    REPL_RUN_HIST
 });
 
 

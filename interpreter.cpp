@@ -14,12 +14,7 @@
 #include <memory>
 
 
-struct resp_or_syscall
-{
-    std::shared_ptr<std::string> response;
-    int syscall;
-    bool set;
-};
+
 
 bool is_special_input(std::string const &input)
 {
@@ -31,7 +26,7 @@ bool is_special_input(std::string const &input)
     return false;
 }
 
-std::shared_ptr<std::string> format_history_for_string()
+std::shared_ptr<std::string> interpreter::format_history_for_string()
 {
     if (HISTORY.empty())
             return std::shared_ptr<std::string>(new std::string(""));
@@ -51,7 +46,7 @@ std::shared_ptr<std::string> format_history_for_string()
     return std::shared_ptr<std::string>(ret);
 }
 
-std::shared_ptr<std::string> format_grammar_lines()
+std::shared_ptr<std::string> interpreter::format_grammar_lines()
 {
     std::string *ret = new std::string("LOADED GRAMMAR:\n");
     auto lines = GRAMMARS.top()->get_lines();
@@ -65,7 +60,7 @@ std::shared_ptr<std::string> format_grammar_lines()
     return std::shared_ptr<std::string>(ret);
 }
 
-std::shared_ptr<resp_or_syscall> get_special_input(std::string const &input)
+std::shared_ptr<resp_or_syscall> interpreter::get_special_input(std::string const &input)
 {
     if (input.length() == 0)
             return nullptr;
@@ -75,7 +70,7 @@ std::shared_ptr<resp_or_syscall> get_special_input(std::string const &input)
     if (!is_special_input(command_keyword))
         return nullptr;
         
-    resp_or_syscall *ret = new resp_or_syscall;
+    std::shared_ptr<resp_or_syscall> ret(new resp_or_syscall);
         
     if (command_keyword == EXIT_REPL)
     {
@@ -90,7 +85,7 @@ std::shared_ptr<resp_or_syscall> get_special_input(std::string const &input)
     else if (command_keyword == REPL_CLEAR_HISTORY)
     {
         HISTORY.clear();
-                ret->response = std::shared_ptr<std::string>(new std::string(""));
+        ret->response = std::shared_ptr<std::string>(new std::string(""));
         ret->syscall = NORM_SYSCALL;
     }
     else if(command_keyword == REPL_LOAD_GRAMMAR)
@@ -100,10 +95,17 @@ std::shared_ptr<resp_or_syscall> get_special_input(std::string const &input)
         ret->response = format_grammar_lines();
         ret->syscall = NORM_SYSCALL;
     }
-    return std::shared_ptr<resp_or_syscall>(ret);
+    else if(command_keyword == REPL_RUN_HIST)
+    {
+        HISTORY.push_back(input);
+        handle_history_run((*command)[1]);
+        ret -> response =  nullptr;
+        ret -> syscall = RUN_REPL_HISTORY_SYSCALL;
+    }
+    return ret;
 }
 
-std::shared_ptr<resp_or_syscall> evaluate_response(std::string const &input)
+std::shared_ptr<resp_or_syscall> interpreter::evaluate_response(std::string const &input)
 {
     resp_or_syscall *ret = new resp_or_syscall;
     ret -> syscall = NORM_SYSCALL;
@@ -118,13 +120,27 @@ std::shared_ptr<resp_or_syscall> evaluate_response(std::string const &input)
     return std::shared_ptr<resp_or_syscall>(ret);
 }
 
-std::shared_ptr<resp_or_syscall> evaluate(std::string const &input)
+
+void interpreter::handle_history_run(std::string const &number)
 {
-        
+    size_t com_numb = atoi(number.c_str());
+    if (com_numb >= HISTORY.size())
+    {
+        return;
+    }
+    auto command = HISTORY[com_numb-1];
+    auto resp = evaluate(command);
+    if (resp -> syscall == NORM_SYSCALL)
+        std::cout << *(resp -> response) << std::endl << std::endl;
+}
+
+std::shared_ptr<resp_or_syscall> interpreter::evaluate(std::string const &input)
+{
+    
     auto special_input = get_special_input(input);
     if (special_input != nullptr)
     {
-                return std::shared_ptr<resp_or_syscall>(special_input);
+        return std::shared_ptr<resp_or_syscall>(special_input);
     }
     else
     {
@@ -134,13 +150,12 @@ std::shared_ptr<resp_or_syscall> evaluate(std::string const &input)
             throw "Unexpected nullptr expected";
         }
         HISTORY.push_back(input);
-                return std::shared_ptr<resp_or_syscall>(evaluated_response);
+        return std::shared_ptr<resp_or_syscall>(evaluated_response);
     }
     return nullptr;
 }
 
-
-int loop_iteration(std::string const &shell_name)
+int interpreter::loop_iteration(std::string const &shell_name)
 {
     std::string s;
     std::cout << shell_name << "> ";
@@ -157,10 +172,11 @@ int loop_iteration(std::string const &shell_name)
 
 void main_loop(std::shared_ptr<repl_options> const &opts)
 {
+    interpreter t;
     std::string name = opts->get_option_with_key(REPL_NAME);
     while(true)
     {
-        int exit_code = loop_iteration(name);
+        int exit_code = t.loop_iteration(name);
         switch(exit_code)
         {
             case NORM_SYSCALL:
