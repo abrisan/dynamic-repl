@@ -22,7 +22,7 @@ bool is_valid_key(std::string const &key)
 
 PARSE_RESULT repl_options::process_option(std::string const &option_line)
 {
-    std::unique_ptr<std::vector<std::string>> result = split(option_line, nullptr);
+    std::unique_ptr<std::vector<std::string>> result = split(option_line, " ");
     if (!result || result->size() > 2)
     {
         return FAIL;

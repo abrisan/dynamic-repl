@@ -71,7 +71,7 @@ std::shared_ptr<resp_or_syscall> interpreter::get_special_input(std::string cons
 {
     if (input.length() == 0)
             return nullptr;
-    std::unique_ptr<std::vector<std::string>> command(split(input, nullptr));
+    std::unique_ptr<std::vector<std::string>> command(split(input, " "));
     std::string command_keyword = (*command)[0];
         
     if (!is_special_input(command_keyword))

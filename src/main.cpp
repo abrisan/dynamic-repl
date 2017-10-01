@@ -13,11 +13,10 @@
 
 int main()
 {
-  std::cout << "Please enter path to config file:\n";
-  std::string s;
-  std::cin >> s;
-  
-  
+    std::cout << "Please enter path to config file:\n";
+    std::string s;
+    std::cin >> s;
+    
     std::shared_ptr<repl_options> options(new repl_options);
         
     options->parse_file(s);

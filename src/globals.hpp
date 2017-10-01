@@ -49,6 +49,7 @@ static std::vector<std::string> const CONFIG_OPTIONS({
 static std::vector<std::string> HISTORY;
 static std::stack<std::shared_ptr<grammar>> GRAMMARS;
 
-std::unique_ptr<std::vector<std::string>> split(std::string const &str, char const *delim);
+std::unique_ptr<std::vector<std::string>> split(std::string const &str, std::string const &delim);
+
 
 #endif /* globals_hpp */
