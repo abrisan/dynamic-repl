@@ -16,20 +16,25 @@
 #include <unordered_map>
 #include <stack>
 #include <tuple>
+#include "json_container.hpp"
 
 #define JSON_ADD_SUCC 0
 #define JSON_ADD_FAIL_DUPLICATE 1
+
+#ifndef JSON_TOKENS
+#define JSON_TOKENS
+#define JSON_CURLY_OPEN '{'
+#define JSON_CURLY_CLOSE '}'
+#define JSON_COLON ':'
+#define JSON_COMMA ','
+#define JSON_QUOTE '"'
+#define JSON_CHAR_OR_COLON 'c'
+#endif
 
 typedef int JSON_PARSE_RESULT;
 typedef std::shared_ptr<int> i_ptr;
 typedef std::shared_ptr<std::string> str_ptr;
 
-struct json_container
-{
-    std::unordered_map<std::string, json_container> child_objects;
-    std::unordered_map<std::string, std::string> string_values;
-    std::unordered_map<std::string, int> int_values;
-};
 
 typedef std::shared_ptr<json_container> json_ptr;
 
@@ -40,6 +45,7 @@ class json_object
 private:
     std::string name;
     json_container information;
+    std::unordered_map<std::string, json_container> child_objects;
 public:
     json_value operator[](std::string const &name);
     JSON_PARSE_RESULT add_string_attribute(std::string const &name, std::string const &attribute);
@@ -49,10 +55,6 @@ public:
 
 
 
-std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::string>> json_string)
-{
-    
-    return nullptr;
-}
+std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::string>> json_string);
 
 #endif /* json_hpp */
