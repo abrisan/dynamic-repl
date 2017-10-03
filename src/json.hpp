@@ -29,6 +29,7 @@
 #define JSON_COMMA ','
 #define JSON_QUOTE '"'
 #define JSON_CHAR_OR_COLON 'c'
+#define JSON_WHITESPACE ' '
 #endif
 
 typedef int JSON_PARSE_RESULT;
@@ -45,16 +46,26 @@ class json_object
 private:
     std::string name;
     json_container information;
-    std::unordered_map<std::string, json_container> child_objects;
+    std::unordered_map<std::string, std::shared_ptr<json_object>> child_objects;
+    bool check_existing_name(std::string const &name) const;
 public:
     json_value operator[](std::string const &name);
     JSON_PARSE_RESULT add_string_attribute(std::string const &name, std::string const &attribute);
     JSON_PARSE_RESULT add_int_attribute(std::string const &name, int const &attribute);
-    JSON_PARSE_RESULT add_json_object(std::string const &name, json_object const &object);
+    JSON_PARSE_RESULT add_json_object(std::string const &name, std::shared_ptr<json_object> const &object);
+    std::string to_string() const;
 };
 
 
 
 std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::string>> json_string);
+
+inline std::ostream& operator<<(std::ostream &cout, json_object const &my_obj)
+{
+    cout << my_obj.to_string();
+    return cout;
+}
+
+
 
 #endif /* json_hpp */

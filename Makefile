@@ -6,7 +6,7 @@ compile:
 	g++ -c -o bin/main.o -std=c++0x src/main.cpp
 	g++ -c -o bin/json.o -std=c++0x src/json.cpp
 link:
-	g++ -o start bin/grammar.o bin/options.o bin/globals.o bin/interpreter.o bin/main.o
+	g++ -o start bin/grammar.o bin/options.o bin/globals.o bin/interpreter.o bin/main.o bin/json.o
 clean:
 	touch start
 	rm -rf bin/*
