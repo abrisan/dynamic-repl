@@ -44,10 +44,11 @@ typedef std::tuple<str_ptr, i_ptr, json_ptr> json_value;
 class json_object
 {
 private:
-    std::string name;
+    std::string *name;
     json_container information;
     std::unordered_map<std::string, std::shared_ptr<json_object>> child_objects;
     bool check_existing_name(std::string const &name) const;
+    std::string to_string_helper(int tab_szie) const;
 public:
     json_value operator[](std::string const &name);
     JSON_PARSE_RESULT add_string_attribute(std::string const &name, std::string const &attribute);

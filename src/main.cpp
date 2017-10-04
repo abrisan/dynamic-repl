@@ -28,7 +28,7 @@ void test_main()
 {
     std::vector<std::string> *input = new std::vector<std::string>;
     input -> push_back("{name: \"Alex\", surname: \"Brisan\"");
-    input -> push_back(", some_other_param: \"Hello, World!\", number_param: 1, obj_type: {num: 2}}");
+    input -> push_back(", some_other_param: \"Hello, World!\", number_param: 1, obj: {some_obj:{num: 1}}}");
     auto obj = parse_json_string(std::shared_ptr<std::vector<std::string>>(input));
     json_value elem = (*obj)["name"];
     json_value elem2 = (*obj)["surname"];
