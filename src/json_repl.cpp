@@ -130,8 +130,9 @@ void run_json_repl()
         std::string s;
         std::getline(std::cin, s);
         json_syscall res = json_eval(s);
+        std:: cout << res.message << std::endl;
+        
         if (res.code == JSON_EXIT_SYSCALL)
             return;
-        std:: cout << res.message << std::endl;
     }
 }
