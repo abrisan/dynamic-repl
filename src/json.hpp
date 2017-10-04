@@ -9,7 +9,6 @@
 #ifndef json_hpp
 #define json_hpp
 
-#include "globals.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -44,7 +43,7 @@ typedef std::tuple<str_ptr, i_ptr, json_ptr> json_value;
 class json_object
 {
 private:
-    std::string *name;
+    std::unique_ptr<std::string> name;
     json_container information;
     std::unordered_map<std::string, std::shared_ptr<json_object>> child_objects;
     bool check_existing_name(std::string const &name) const;
@@ -55,6 +54,8 @@ public:
     JSON_PARSE_RESULT add_int_attribute(std::string const &name, int const &attribute);
     JSON_PARSE_RESULT add_json_object(std::string const &name, std::shared_ptr<json_object> const &object);
     std::string to_string() const;
+    void set_name(std::string const &name);
+    std::string const get_name() const {return *name;}
 };
 
 

@@ -15,12 +15,15 @@
 #include <stack>
 #include "grammar.hpp"
 #include <memory>
+#include "json.hpp"
 
 #define EXIT_REPL "exit"
 #define REPL_HISTORY "history"
 #define REPL_CLEAR_HISTORY "clearhist"
 #define REPL_LOAD_GRAMMAR "load_grammar"
 #define REPL_RUN_HIST ":run"
+#define REPL_JSON ":json"
+#define DEFAULT_PATH "/Users/alexandrubrisan/Desktop/dynamic-repl/dynamic-repl/options.config"
 
 #define EXIT_REPL_SYSCALL 1
 #define RUN_REPL_HISTORY_SYSCALL -1
@@ -31,7 +34,8 @@ static std::vector<std::string> SPECIAL_STRINGS({
     REPL_HISTORY,
     REPL_CLEAR_HISTORY,
     REPL_LOAD_GRAMMAR,
-    REPL_RUN_HIST
+    REPL_RUN_HIST,
+    REPL_JSON
 });
 
 
@@ -48,6 +52,9 @@ static std::vector<std::string> const CONFIG_OPTIONS({
 
 static std::vector<std::string> HISTORY;
 static std::stack<std::shared_ptr<grammar>> GRAMMARS;
+#ifdef json_hpp
+static std::vector<std::shared_ptr<json_object>> loaded_json_objects;
+#endif
 
 std::unique_ptr<std::vector<std::string>> split(std::string const &str, std::string const &delim);
 

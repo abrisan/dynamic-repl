@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-
+#include "json_repl.hpp"
 
 
 
@@ -108,6 +108,13 @@ std::shared_ptr<resp_or_syscall> interpreter::get_special_input(std::string cons
         handle_history_run((*command)[1]);
         ret -> response =  nullptr;
         ret -> syscall = RUN_REPL_HISTORY_SYSCALL;
+    }
+    else if (command_keyword == REPL_JSON)
+    {
+        HISTORY.push_back(input);
+        run_json_repl();
+        ret -> response = std::shared_ptr<std::string>(new std::string(""));
+        ret -> syscall = NORM_SYSCALL;
     }
     return ret;
 }

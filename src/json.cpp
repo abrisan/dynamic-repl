@@ -77,7 +77,7 @@ std::string json_object::to_string() const
     }
     else
     {
-        outstr << "[" << this -> name << " Object]";
+        outstr << "[" << *(this -> name) << " Object]";
     }
     
     outstr << ": {";
@@ -131,6 +131,11 @@ std::string json_object::to_string_helper(int tab_size) const
     }
     outstring << "}";
     return outstring.str();
+}
+
+void json_object::set_name(std::string const &name)
+{
+    this -> name = std::unique_ptr<std::string>(new std::string(name));
 }
 
 std::unique_ptr<int> try_to_convert_to_number(std::string const &value_string)

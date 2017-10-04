@@ -18,6 +18,9 @@ void repl_main()
     std::string s;
     std::cin >> s;
     
+    if (s == "def")
+        s = DEFAULT_PATH;
+    
     std::shared_ptr<repl_options> options(new repl_options);
     
     options->parse_file(s);
