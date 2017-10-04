@@ -47,7 +47,7 @@ std::shared_ptr<std::vector<std::string>> read_json_strings()
             else if(s[i] == JSON_CURLY_CLOSE)
             {
                 if (!brackets.size())
-                    throw "Invalid JSON FORMAT";
+                    return nullptr;
                 brackets.pop();
             }
         }
@@ -71,6 +71,9 @@ json_syscall json_eval(std::string s)
             return invalid_json_syscall();
         
         std::shared_ptr<std::vector<std::string>> strs = read_json_strings();
+        
+        if (strs == nullptr)
+            return invalid_json_syscall();
         
         auto obj = parse_json_string(strs);
         obj -> set_name((*split_string)[1]);
