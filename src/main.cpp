@@ -33,10 +33,10 @@ void test_main()
     input -> push_back("{name: \"Alex\", surname: \"Brisan\"");
     input -> push_back(", some_other_param: \"Hello, World!\", number_param: 1, obj: {some_obj:{num: 1}}}");
     auto obj = parse_json_string(std::shared_ptr<std::vector<std::string>>(input));
-    json_value elem = (*obj)["name"];
-    json_value elem2 = (*obj)["surname"];
-    auto string_value = std::get<str_ptr>(elem);
-    auto string_surname = std::get<str_ptr>(elem2);
+    //json_value elem = (*obj)["name"];
+    //json_value elem2 = (*obj)["surname"];
+    //auto string_value = std::get<str_ptr>(elem);
+    //auto string_surname = std::get<str_ptr>(elem2);
     // std::cout << *string_value <<  " " <<  *string_surname << std::endl;
     std::cout << *obj << std::endl;
 }

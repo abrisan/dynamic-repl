@@ -151,92 +151,29 @@ std::unique_ptr<int> try_to_convert_to_number(std::string const &value_string)
     return std::unique_ptr<int>(ret);
 }
 
-void process_key_and_value(std::stack<json_object *> ret, std::ostringstream &key, std::ostringstream &value)
+void process_key_and_value(json_object *&obj, std::string const &key, std::string const &value)
 {
-    std::string value_string = value.str();
-    auto is_number = try_to_convert_to_number(value_string);
+    if (!key.size() || !value.size())
+        return;
+    auto is_number = try_to_convert_to_number(value);
     if (is_number == nullptr)
     {
-        JSON_PARSE_RESULT res = ret.top() -> add_string_attribute(key.str(), value.str());
+        JSON_PARSE_RESULT res = obj -> add_string_attribute(key, value);
         if (res == JSON_ADD_FAIL_DUPLICATE)
             throw "Trying to add duplicate JSON Attribute";
     }
     else
     {
-        JSON_PARSE_RESULT res = ret.top() -> add_int_attribute(key.str(), *is_number);
+        JSON_PARSE_RESULT res = obj -> add_int_attribute(key, *is_number);
         if (res == JSON_ADD_FAIL_DUPLICATE)
         {
-            std::cout << key.str() << " : " << value.str() << std::endl;
             throw "Trying to add duplicate JSON Attribute";
         }
         
     }
-    key.str("");
-    value.str("");
 }
 
-std::unique_ptr<std::unordered_map<std::string, std::string>> get_elements(std::string const &joined_string)
-{
-    std::unordered_map<std::string, std::string> *ret = new std::unordered_map<std::string, std::string>;
-    
-    std::ostringstream key;
-    std::ostringstream value;
-    std::ostringstream *cur_stream = &key;
-    
-    size_t string_len = joined_string.length();
-    
-    bool string_mode = false;
-    
-    std::stack<char> curly_braces;
-    
-    for(size_t i = 1 ; i < string_len - 1 ; ++i)
-    {
-        if (joined_string[i] == ' ')
-            continue;
-        
-        else if (joined_string[i] == ',' && !string_mode && !curly_braces.size())
-        {
-            (*ret)[key.str()] = value.str();
-            key.str("");
-            value.str("");
-            cur_stream = &key;
-        }
-        
-        else if (joined_string[i] == '"' && !curly_braces.size())
-        {
-            string_mode = !string_mode;
-        }
-        
-        else if (joined_string[i] == ':' && !curly_braces.size())
-        {
-            cur_stream = &value;
-        }
-        
-        else if (joined_string[i] == '{')
-        {
-            (*cur_stream) << joined_string[i];
-            curly_braces.push('{');
-        }
-        
-        else if (joined_string[i] == '}')
-        {
-            (*cur_stream) << joined_string[i];
-            curly_braces.pop();
-        }
-        
-        else
-        {
-            (*cur_stream) << joined_string[i];
-        }
-    }
-    
-    if (key.str().length() > 0 && value.str().length() > 0)
-    {
-        (*ret)[key.str()] = value.str();
-    }
-    
-    return std::unique_ptr<std::unordered_map<std::string, std::string>>(ret);
-}
+
 
 std::string join_json_string(std::shared_ptr<std::vector<std::string>> json_string)
 {
@@ -250,7 +187,12 @@ std::string join_json_string(std::shared_ptr<std::vector<std::string>> json_stri
     return joined_json_string.str();
 }
 
-std::shared_ptr<json_object> new_json_parse(std::shared_ptr<std::vector<std::string>> json_string)
+void process_char(std::stack<char> *&expected, char const &c)
+{
+    
+}
+
+std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::string>> json_string)
 {
     std::string joined_string = join_json_string(json_string);
     
@@ -261,56 +203,67 @@ std::shared_ptr<json_object> new_json_parse(std::shared_ptr<std::vector<std::str
     std::ostringstream *cur_stream = &key;
     
     std::stack<json_object *> objects;
+    std::stack<std::string> obj_names;
+    
+    bool t_string_mode = false;
     
     for (size_t i = 0 ; i < length ; ++i)
     {
-         
+        if (joined_string[i] == JSON_CURLY_OPEN)
+        {
+            objects.push(new json_object);
+            obj_names.push(key.str());
+            key.str("");
+            value.str("");
+            cur_stream = &key;
+        }
+        else if (joined_string[i] == JSON_CURLY_CLOSE)
+        {
+            if (!objects.size())
+                return nullptr;
+            json_object *top = objects.top();
+            objects.pop();
+            process_key_and_value(top, key.str(), value.str());
+            cur_stream = &key;
+            key.str("");
+            value.str("");
+            if (objects.size())
+            {
+                objects.top() -> add_json_object(obj_names.top(), std::shared_ptr<json_object>(top));
+                obj_names.pop();
+            }
+            else
+                return std::shared_ptr<json_object>(top);
+        }
+        else if (joined_string[i] == JSON_QUOTE)
+        {
+            t_string_mode = !t_string_mode;
+        }
+        else if (joined_string[i] == JSON_COMMA && !t_string_mode)
+        {
+            auto keystr = key.str();
+            auto valstr = value.str();
+            process_key_and_value(objects.top(), keystr, valstr);
+            key.str("");
+            value.str("");
+            cur_stream = &key;
+        }
+        else if (joined_string[i] == JSON_COLON)
+        {
+            cur_stream = &value;
+        }
+        else if (joined_string[i] == JSON_WHITESPACE)
+        {
+            continue;
+        }
+        else
+        {
+            *cur_stream << joined_string[i];
+        }
+        
     }
     
     return nullptr;
 }
 
 
-std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::string>> json_string)
-{
-    if (json_string == nullptr)
-        return std::shared_ptr<json_object>(new json_object);
-    
-    std::ostringstream joined_json_string;
-    
-    for (auto const &x : *json_string)
-    {
-        joined_json_string << x;
-    }
-    
-    std::string joined_string = joined_json_string.str();
-    
-    std::unique_ptr<std::unordered_map<std::string, std::string>> elements = get_elements(joined_string);
-    
-    json_object *ret = new json_object;
-    
-    for (auto const &x : *elements)
-    {
-        if (x.second[0] != '{')
-        {
-            auto try_number = try_to_convert_to_number(x.second);
-            if (try_number == nullptr)
-            {
-                ret -> add_string_attribute(x.first, x.second);
-            }
-            else
-            {
-                ret -> add_int_attribute(x.first, *try_number);
-            }
-        }
-        else
-        {
-            std::vector<std::string> *to_pass = new std::vector<std::string>;
-            to_pass -> push_back(x.second);
-            std::shared_ptr<std::vector<std::string>> arg(to_pass);
-            ret -> add_json_object(x.first, parse_json_string(arg));
-        }
-    }
-    
-    return std::shared_ptr<json_object>(ret);
-}
