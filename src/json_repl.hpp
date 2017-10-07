@@ -22,6 +22,8 @@
 #define JSON_EXIT_SYSCALL 1
 #endif
 
-void run_json_repl();
+#include "globals.hpp"
+
+void run_json_repl(global_context &context);
 
 #endif /* json_repl_hpp */

@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <sstream>
+#include <tuple>
 #include "json_repl.hpp"
 
 
@@ -30,11 +32,11 @@ std::shared_ptr<std::string> interpreter::format_history_for_string()
 {
     if (HISTORY.empty())
             return std::shared_ptr<std::string>(new std::string(""));
-        
+
     std::string *ret = new std::string;
-        
+
     int i = 0;
-        
+
     for (auto const &s : HISTORY)
     {
         ++i;
@@ -49,7 +51,7 @@ std::shared_ptr<std::string> interpreter::format_history_for_string()
             ret -> append(s);
         }
     }
-        
+
     return std::shared_ptr<std::string>(ret);
 }
 
@@ -57,28 +59,28 @@ std::shared_ptr<std::string> interpreter::format_grammar_lines()
 {
     std::string *ret = new std::string("LOADED GRAMMAR:\n");
     auto lines = GRAMMARS.top()->get_lines();
-        
+
     for (auto const &x: (*lines))
     {
         ret -> append(x);
         ret -> append("\n");
     }
-        
+
     return std::shared_ptr<std::string>(ret);
 }
 
-std::shared_ptr<resp_or_syscall> interpreter::get_special_input(std::string const &input)
+std::shared_ptr<resp_or_syscall> interpreter::get_special_input(global_context &context, std::string const &input)
 {
     if (input.length() == 0)
             return nullptr;
     std::unique_ptr<std::vector<std::string>> command(split(input, " "));
     std::string command_keyword = (*command)[0];
-        
+
     if (!is_special_input(command_keyword))
         return nullptr;
-        
+
     std::shared_ptr<resp_or_syscall> ret(new resp_or_syscall);
-        
+
     if (command_keyword == EXIT_REPL)
     {
         ret->response = nullptr;
@@ -105,21 +107,97 @@ std::shared_ptr<resp_or_syscall> interpreter::get_special_input(std::string cons
     else if(command_keyword == REPL_RUN_HIST)
     {
         HISTORY.push_back(input);
-        handle_history_run((*command)[1]);
+        handle_history_run(context, (*command)[1]);
         ret -> response =  nullptr;
         ret -> syscall = RUN_REPL_HISTORY_SYSCALL;
     }
     else if (command_keyword == REPL_JSON)
     {
         HISTORY.push_back(input);
-        run_json_repl();
+        run_json_repl(context);
         ret -> response = std::shared_ptr<std::string>(new std::string(""));
         ret -> syscall = NORM_SYSCALL;
     }
     return ret;
 }
 
-std::shared_ptr<resp_or_syscall> interpreter::evaluate_response(std::string const &input)
+std::shared_ptr<std::string> unpack_json_value(json_value const &value)
+{
+    std::ostringstream output;
+    auto string_try = std::get<0>(value);
+    if (string_try != nullptr)
+    {
+        output << *string_try;
+        output << " (std::string)";
+        return std::shared_ptr<std::string>(new std::string(output.str()));
+    }
+
+    auto int_try = std::get<1>(value);
+    if (int_try != nullptr)
+    {
+        output << *int_try;
+        output << " (int)";
+        return std::shared_ptr<std::string>(new std::string(output.str()));
+    }
+
+    auto json_object_try = std::get<2>(value);
+    if (json_object_try != nullptr)
+    {
+        output << json_object_try -> to_string();
+        output << " (json_object)";
+        return std::shared_ptr<std::string>(new std::string(output.str()));
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<std::string> interpreter::try_to_find_json_access(global_context &context, std::string const &input)
+{
+    std::ostringstream obj_name;
+    std::ostringstream attribute_name;
+    std::ostringstream *current_stream = &obj_name;
+
+    std::shared_ptr<json_object> objptr;
+
+    for (size_t i = 0 ; i < input.size() ; ++i)
+    {
+        if (input[i] == '.')
+        {
+            std::string name = obj_name.str();
+
+            for (auto const &x : context.loaded_json_objects())
+            {
+                if (x -> get_name() == name)
+                {
+                    objptr = x;
+                }
+            }
+
+            if (objptr == nullptr)
+            {
+                std::cout << "Object " << name << " not found" << std::endl;
+                return nullptr;
+            }
+            current_stream = &attribute_name;
+        }
+        else
+        {
+            (*current_stream) << input[i];
+        }
+    }
+
+    try
+    {
+        auto attribute_value = (*objptr)[attribute_name.str()];
+        return unpack_json_value(attribute_value);
+    }
+    catch (std::exception e)
+    {
+        return std::shared_ptr<std::string>(new std::string("Object has no attribute with that name"));
+    }
+}
+
+std::shared_ptr<resp_or_syscall> interpreter::evaluate_response(global_context &context, std::string const &input)
 {
     resp_or_syscall *ret = new resp_or_syscall;
     ret -> syscall = NORM_SYSCALL;
@@ -129,13 +207,22 @@ std::shared_ptr<resp_or_syscall> interpreter::evaluate_response(std::string cons
     }
     else
     {
-        ret -> response = std::shared_ptr<std::string>(new std::string(input));
+        auto could_be_json_command = try_to_find_json_access(context, input);
+        if (could_be_json_command != nullptr)
+        {
+            ret -> response = could_be_json_command;
+        }
+        else
+        {
+            ret -> response = std::shared_ptr<std::string>(new std::string(input));
+        }
+
     }
     return std::shared_ptr<resp_or_syscall>(ret);
 }
 
 
-void interpreter::handle_history_run(std::string const &number)
+void interpreter::handle_history_run(global_context &context, std::string const &number)
 {
     size_t com_numb = atoi(number.c_str());
     if (com_numb >= HISTORY.size())
@@ -143,22 +230,22 @@ void interpreter::handle_history_run(std::string const &number)
         return;
     }
     auto command = HISTORY[com_numb-1];
-    auto resp = evaluate(command);
+    auto resp = evaluate(context, command);
     if (resp -> syscall == NORM_SYSCALL)
         std::cout << *(resp -> response) << std::endl << std::endl;
 }
 
-std::shared_ptr<resp_or_syscall> interpreter::evaluate(std::string const &input)
+std::shared_ptr<resp_or_syscall> interpreter::evaluate(global_context &context, std::string const &input)
 {
-    
-    auto special_input = get_special_input(input);
+
+    auto special_input = get_special_input(context, input);
     if (special_input != nullptr)
     {
         return std::shared_ptr<resp_or_syscall>(special_input);
     }
     else
     {
-        auto evaluated_response = evaluate_response(input);
+        auto evaluated_response = evaluate_response(context, input);
         if (evaluated_response == nullptr)
         {
             throw "Unexpected nullptr expected";
@@ -169,12 +256,12 @@ std::shared_ptr<resp_or_syscall> interpreter::evaluate(std::string const &input)
     return nullptr;
 }
 
-int interpreter::loop_iteration(std::string const &shell_name)
+int interpreter::loop_iteration(global_context &context, std::string const &shell_name)
 {
     std::string s;
     std::cout << shell_name << "> ";
     std::getline(std::cin, s);
-    auto resp = evaluate(s);
+    auto resp = evaluate(context, s);
     if (resp -> syscall == EXIT_REPL_SYSCALL)
     {
         return EXIT_REPL_SYSCALL;
@@ -184,13 +271,13 @@ int interpreter::loop_iteration(std::string const &shell_name)
     return NORM_SYSCALL;
 }
 
-void main_loop(std::shared_ptr<repl_options> const &opts)
+void main_loop(global_context &context, std::shared_ptr<repl_options> const &opts)
 {
     interpreter t;
     std::string name = opts->get_option_with_key(REPL_NAME);
     while(true)
     {
-        int exit_code = t.loop_iteration(name);
+        int exit_code = t.loop_iteration(context, name);
         switch(exit_code)
         {
             case NORM_SYSCALL:

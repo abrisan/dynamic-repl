@@ -20,17 +20,18 @@ struct resp_or_syscall
 
 class interpreter
 {
-private:    
-    std::shared_ptr<resp_or_syscall> evaluate(std::string const &input);
-    void handle_history_run(std::string const &number);
-    std::shared_ptr<resp_or_syscall> evaluate_response(std::string const &input);
-    std::shared_ptr<resp_or_syscall> get_special_input(std::string const &input);
+private:
+    std::shared_ptr<resp_or_syscall> evaluate(global_context &context, std::string const &input);
+    void handle_history_run(global_context &context, std::string const &number);
+    std::shared_ptr<resp_or_syscall> evaluate_response(global_context &context, std::string const &input);
+    std::shared_ptr<resp_or_syscall> get_special_input(global_context &context, std::string const &input);
     std::shared_ptr<std::string> format_grammar_lines();
     std::shared_ptr<std::string> format_history_for_string();
+    std::shared_ptr<std::string> try_to_find_json_access(global_context &context, std::string const &input);
 public:
-    int loop_iteration(std::string const &shell_name);
+    int loop_iteration(global_context &context, std::string const &shell_name);
 };
 
-void main_loop(std::shared_ptr<repl_options> const &opts);
+void main_loop(global_context &context, std::shared_ptr<repl_options> const &opts);
 
 #endif /* interpreter_hpp */

@@ -35,8 +35,9 @@ typedef int JSON_PARSE_RESULT;
 typedef std::shared_ptr<int> i_ptr;
 typedef std::shared_ptr<std::string> str_ptr;
 
+class json_object;
 
-typedef std::shared_ptr<json_container> json_ptr;
+typedef std::shared_ptr<json_object> json_ptr;
 
 typedef std::tuple<str_ptr, i_ptr, json_ptr> json_value;
 
