@@ -74,6 +74,54 @@ std::unique_ptr<json_syscall> check_existing_name(global_context &context, std::
     return nullptr;
 }
 
+bool remove_object_from_memory(global_context &context, std::string const &name)
+{
+  size_t veclen = context.loaded_json_objects() . size();
+  size_t index = -1;
+
+  for (size_t i = 0 ; i < veclen ; ++i)
+  {
+      if (context.loaded_json_objects()[i] -> get_name() == name)
+      {
+          index = i;
+          break;
+      }
+  }
+
+  if (!(index + 1))
+  {
+      return false;
+  }
+
+  context.loaded_json_objects() . erase(context.loaded_json_objects() . begin() + index);
+
+  return true;
+}
+
+bool remove_object_name_from_memory(global_context &context, std::string const &name)
+{
+  size_t veclen = context.get_json_names() . size();
+  size_t index = -1;
+
+  for (size_t i = 0 ; i < veclen ; ++i)
+  {
+      if (context.get_json_names()[i] == name)
+      {
+          index = i;
+          break;
+      }
+  }
+
+  if (!(index + 1))
+  {
+      return false;
+  }
+
+  context.get_json_names() . erase(context.get_json_names() . begin() + index);
+
+  return true;
+}
+
 
 json_syscall json_eval(global_context &context, std::string s)
 {
@@ -110,22 +158,20 @@ json_syscall json_eval(global_context &context, std::string s)
     }
     else if (com_keyword == RELEASE_OBJECT)
     {
-        size_t veclen = context.loaded_json_objects() . size();
-        size_t index = -1;
 
-        for (size_t i = 0 ; i < veclen ; ++i)
+        bool t_remove_obj_succ = remove_object_from_memory(context, (*split_string)[1]);
+        bool t_remove_obj_name_succ = remove_object_name_from_memory(context, (*split_string)[1]);
+
+        if (!(t_remove_obj_succ && t_remove_obj_name_succ))
         {
-            if (context.loaded_json_objects()[i] -> get_name() == (*split_string)[1])
-            {
-                index = i;
-                break;
-            }
+            ret.message = "Removal failed";
+            ret.code = JSON_NORM_SYSCALL;
         }
-
-        context.loaded_json_objects() . erase(context.loaded_json_objects() . begin() + index);
-
-        ret.message = "Removed object from memory";
-        ret.code = JSON_NORM_SYSCALL;
+        else
+        {
+            ret.message = "Removed object from memory";
+            ret.code = JSON_NORM_SYSCALL;
+        }
     }
     else if (com_keyword == SHOW_OBJECTS)
     {

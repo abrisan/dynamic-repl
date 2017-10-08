@@ -72,6 +72,7 @@ json_value json_path::evaluate_path(json_object &object)
     }
     if (current_index + 1 == path.size())
     {
+        current_index = 0;
         return value;
     }
     ++current_index;
