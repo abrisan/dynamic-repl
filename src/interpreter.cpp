@@ -15,6 +15,7 @@
 #include <sstream>
 #include <tuple>
 #include "json_repl.hpp"
+#include "json_path.hpp"
 
 
 
@@ -148,53 +149,14 @@ std::shared_ptr<std::string> unpack_json_value(json_value const &value)
         return std::shared_ptr<std::string>(new std::string(output.str()));
     }
 
-    return nullptr;
+    return std::shared_ptr<std::string>(new std::string("Object does not have attribute"));
 }
 
 std::shared_ptr<std::string> interpreter::try_to_find_json_access(global_context &context, std::string const &input)
 {
-    std::ostringstream obj_name;
-    std::ostringstream attribute_name;
-    std::ostringstream *current_stream = &obj_name;
-
-    std::shared_ptr<json_object> objptr;
-
-    for (size_t i = 0 ; i < input.size() ; ++i)
-    {
-        if (input[i] == '.')
-        {
-            std::string name = obj_name.str();
-
-            for (auto const &x : context.loaded_json_objects())
-            {
-                if (x -> get_name() == name)
-                {
-                    objptr = x;
-                }
-            }
-
-            if (objptr == nullptr)
-            {
-                std::cout << "Object " << name << " not found" << std::endl;
-                return nullptr;
-            }
-            current_stream = &attribute_name;
-        }
-        else
-        {
-            (*current_stream) << input[i];
-        }
-    }
-
-    try
-    {
-        auto attribute_value = (*objptr)[attribute_name.str()];
-        return unpack_json_value(attribute_value);
-    }
-    catch (std::exception e)
-    {
-        return std::shared_ptr<std::string>(new std::string("Object has no attribute with that name"));
-    }
+    json_path path;
+    path.parse_json_path(input);
+    return unpack_json_value(path.evaluate_path(context));
 }
 
 std::shared_ptr<resp_or_syscall> interpreter::evaluate_response(global_context &context, std::string const &input)

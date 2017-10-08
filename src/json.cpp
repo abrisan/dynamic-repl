@@ -15,16 +15,16 @@ json_value json_object::operator[](std::string const &name)
     auto constit_str = information.string_values.find(name);
     if (constit_str != information.string_values.end())
         return std::make_tuple(str_ptr(new std::string(constit_str->second)), nullptr, nullptr);
-    
+
     auto constit_int = information.int_values.find(name);
     if (constit_int != information.int_values.end())
         return std::make_tuple(nullptr, i_ptr(new int(constit_int->second)), nullptr);
-    
+
     auto constit_obj = child_objects.find(name);
     if (constit_obj != child_objects.end())
-        return std::make_tuple(nullptr, nullptr, nullptr);
-    
-    throw "Key Not Found";
+        return std::make_tuple(nullptr, nullptr, constit_obj -> second);
+
+    return std::make_tuple(nullptr, nullptr, nullptr);
 }
 
 JSON_PARSE_RESULT json_object::add_json_object(std::string const &name, std::shared_ptr<json_object> const &obj)
@@ -56,15 +56,15 @@ bool json_object::check_existing_name(std::string const &name) const
     auto constit_str = information.string_values.find(name);
     if (constit_str != information.string_values.end())
         return true;
-    
+
     auto constit_int = information.int_values.find(name);
     if (constit_int != information.int_values.end())
         return true;
-   
+
     auto constit_obj = child_objects.find(name);
     if (constit_obj != child_objects.end())
         return true;
-    
+
     return false;
 }
 
@@ -79,7 +79,7 @@ std::string json_object::to_string() const
     {
         outstr << "[" << *(this -> name) << " Object]";
     }
-    
+
     outstr << ": {";
     outstr << this -> to_string_helper(2);
     return outstr.str();
@@ -169,44 +169,42 @@ void process_key_and_value(json_object *&obj, std::string const &key, std::strin
         {
             throw "Trying to add duplicate JSON Attribute";
         }
-        
+
     }
 }
-
-
 
 std::string join_json_string(std::shared_ptr<std::vector<std::string>> json_string)
 {
     std::ostringstream joined_json_string;
-    
+
     for (auto const &x : *json_string)
     {
         joined_json_string << x;
     }
-    
+
     return joined_json_string.str();
 }
 
 void process_char(std::stack<char> *&expected, char const &c)
 {
-    
+
 }
 
 std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::string>> json_string)
 {
     std::string joined_string = join_json_string(json_string);
-    
+
     size_t length = joined_string.size();
-    
+
     std::ostringstream key;
     std::ostringstream value;
     std::ostringstream *cur_stream = &key;
-    
+
     std::stack<json_object *> objects;
     std::stack<std::string> obj_names;
-    
+
     bool t_string_mode = false;
-    
+
     for (size_t i = 0 ; i < length ; ++i)
     {
         if (joined_string[i] == JSON_CURLY_OPEN)
@@ -260,10 +258,8 @@ std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::
         {
             *cur_stream << joined_string[i];
         }
-        
+
     }
-    
+
     return nullptr;
 }
-
-

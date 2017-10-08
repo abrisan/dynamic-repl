@@ -15,6 +15,7 @@
 #define JSON_SYSCALLS
 #define NEW_OBJECT "@new"
 #define RELEASE_OBJECT "@delete"
+#define EXECUTE "@execute"
 #define SHOW_OBJECTS "@ls"
 #define QUIT_JSON "@quit_json_mode"
 #define JSON_INVALID_SYSCALL -1
