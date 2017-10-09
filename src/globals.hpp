@@ -2,7 +2,7 @@
 //  globals.hpp
 //  TripSLang
 //
-//  Created by Livecode on 9/28/17.
+//  Created by Alexandru Brisan on 9/28/17.
 //  Copyright © 2017 alexbrisan. All rights reserved.
 //
 
