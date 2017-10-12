@@ -27,6 +27,7 @@ private:
     std::shared_ptr<resp_or_syscall> get_special_input(global_context &context, std::string const &input);
     std::shared_ptr<std::string> format_grammar_lines();
     std::shared_ptr<std::string> format_history_for_string();
+    std::shared_ptr<std::string> format_objects(global_context const &context);
     std::shared_ptr<std::string> try_to_find_json_access(global_context &context, std::string const &input);
 public:
     int loop_iteration(global_context &context, std::string const &shell_name);

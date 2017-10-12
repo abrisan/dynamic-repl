@@ -7,8 +7,9 @@ compile:
 	g++ -c -o bin/json.o -std=c++0x src/json.cpp
 	g++ -c -o bin/json_repl.o -std=c++0x src/json_repl.cpp
 	g++ -c -o bin/json_path.o -std=c++0x src/json_path.cpp
+	g++ -c -o bin/json_file.o -std=c++0x src/json_file.cpp
 link:
-	g++ -o start bin/grammar.o bin/options.o bin/globals.o bin/interpreter.o bin/main.o bin/json.o bin/json_repl.o bin/json_path.o
+	g++ -o start bin/grammar.o bin/options.o bin/globals.o bin/interpreter.o bin/main.o bin/json.o bin/json_repl.o bin/json_path.o bin/json_file.o
 clean:
 	touch start
 	rm -rf bin/*
