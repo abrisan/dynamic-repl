@@ -16,6 +16,7 @@
 #include <tuple>
 #include "json_repl.hpp"
 #include "json_path.hpp"
+#include "json_file.hpp"
 
 
 
@@ -70,6 +71,16 @@ std::shared_ptr<std::string> interpreter::format_grammar_lines()
     return std::shared_ptr<std::string>(ret);
 }
 
+std::shared_ptr<std::string> interpreter::format_objects(global_context const &context)
+{
+    std::string *ret = new std::string;
+    for (auto const &x : context . loaded_json_objects())
+    {
+        ret -> append(x -> to_string());
+    }
+    return std::shared_ptr<std::string>(ret);
+}
+
 std::shared_ptr<resp_or_syscall> interpreter::get_special_input(global_context &context, std::string const &input)
 {
     if (input.length() == 0)
@@ -117,6 +128,13 @@ std::shared_ptr<resp_or_syscall> interpreter::get_special_input(global_context &
         HISTORY.push_back(input);
         run_json_repl(context);
         ret -> response = std::shared_ptr<std::string>(new std::string(""));
+        ret -> syscall = NORM_SYSCALL;
+    }
+    else if (command_keyword == LOAD_JSON_FILE)
+    {
+        HISTORY.push_back(input);
+        load_json_file(context, (*command)[1]);
+        ret -> response = format_objects(context);
         ret -> syscall = NORM_SYSCALL;
     }
     return ret;

@@ -24,6 +24,7 @@
 #define REPL_LOAD_GRAMMAR "load_grammar"
 #define REPL_RUN_HIST ":run"
 #define REPL_JSON ":json"
+#define LOAD_JSON_FILE ":load_json_file"
 #define DEFAULT_PATH "/Users/alexandrubrisan/Desktop/dynamic-repl/dynamic-repl/options.config"
 
 #define EXIT_REPL_SYSCALL 1
@@ -48,7 +49,8 @@ static std::vector<std::string> SPECIAL_STRINGS({
     REPL_CLEAR_HISTORY,
     REPL_LOAD_GRAMMAR,
     REPL_RUN_HIST,
-    REPL_JSON
+    REPL_JSON,
+    LOAD_JSON_FILE
 });
 
 

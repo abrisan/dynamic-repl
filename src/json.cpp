@@ -190,76 +190,81 @@ void process_char(std::stack<char> *&expected, char const &c)
 
 }
 
+std::shared_ptr<json_object> parse_json_string_joined(std::string const &joined_string)
+{
+  size_t length = joined_string.size();
+
+  std::ostringstream key;
+  std::ostringstream value;
+  std::ostringstream *cur_stream = &key;
+
+  std::stack<json_object *> objects;
+  std::stack<std::string> obj_names;
+
+  bool t_string_mode = false;
+
+  for (size_t i = 0 ; i < length ; ++i)
+  {
+      if (joined_string[i] == JSON_CURLY_OPEN)
+      {
+          objects.push(new json_object);
+          obj_names.push(key.str());
+          key.str("");
+          value.str("");
+          cur_stream = &key;
+      }
+      else if (joined_string[i] == JSON_CURLY_CLOSE)
+      {
+          if (!objects.size())
+              return nullptr;
+          json_object *top = objects.top();
+          objects.pop();
+          process_key_and_value(top, key.str(), value.str());
+          cur_stream = &key;
+          key.str("");
+          value.str("");
+          if (objects.size())
+          {
+              objects.top() -> add_json_object(obj_names.top(), std::shared_ptr<json_object>(top));
+              obj_names.pop();
+          }
+          else
+              return std::shared_ptr<json_object>(top);
+      }
+      else if (joined_string[i] == JSON_QUOTE)
+      {
+          t_string_mode = !t_string_mode;
+      }
+      else if (joined_string[i] == JSON_COMMA && !t_string_mode)
+      {
+          auto keystr = key.str();
+          auto valstr = value.str();
+          process_key_and_value(objects.top(), keystr, valstr);
+          key.str("");
+          value.str("");
+          cur_stream = &key;
+      }
+      else if (joined_string[i] == JSON_COLON)
+      {
+          cur_stream = &value;
+      }
+      else if (joined_string[i] == JSON_WHITESPACE)
+      {
+          continue;
+      }
+      else
+      {
+          *cur_stream << joined_string[i];
+      }
+
+  }
+
+  return nullptr;
+}
+
 std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::string>> json_string)
 {
     std::string joined_string = join_json_string(json_string);
 
-    size_t length = joined_string.size();
-
-    std::ostringstream key;
-    std::ostringstream value;
-    std::ostringstream *cur_stream = &key;
-
-    std::stack<json_object *> objects;
-    std::stack<std::string> obj_names;
-
-    bool t_string_mode = false;
-
-    for (size_t i = 0 ; i < length ; ++i)
-    {
-        if (joined_string[i] == JSON_CURLY_OPEN)
-        {
-            objects.push(new json_object);
-            obj_names.push(key.str());
-            key.str("");
-            value.str("");
-            cur_stream = &key;
-        }
-        else if (joined_string[i] == JSON_CURLY_CLOSE)
-        {
-            if (!objects.size())
-                return nullptr;
-            json_object *top = objects.top();
-            objects.pop();
-            process_key_and_value(top, key.str(), value.str());
-            cur_stream = &key;
-            key.str("");
-            value.str("");
-            if (objects.size())
-            {
-                objects.top() -> add_json_object(obj_names.top(), std::shared_ptr<json_object>(top));
-                obj_names.pop();
-            }
-            else
-                return std::shared_ptr<json_object>(top);
-        }
-        else if (joined_string[i] == JSON_QUOTE)
-        {
-            t_string_mode = !t_string_mode;
-        }
-        else if (joined_string[i] == JSON_COMMA && !t_string_mode)
-        {
-            auto keystr = key.str();
-            auto valstr = value.str();
-            process_key_and_value(objects.top(), keystr, valstr);
-            key.str("");
-            value.str("");
-            cur_stream = &key;
-        }
-        else if (joined_string[i] == JSON_COLON)
-        {
-            cur_stream = &value;
-        }
-        else if (joined_string[i] == JSON_WHITESPACE)
-        {
-            continue;
-        }
-        else
-        {
-            *cur_stream << joined_string[i];
-        }
-
-    }
-
-    return nullptr;
+    return parse_json_string_joined(joined_string);
 }

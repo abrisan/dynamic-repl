@@ -59,8 +59,7 @@ public:
     std::string const get_name() const {return *name;}
 };
 
-
-
+std::shared_ptr<json_object> parse_json_string_joined(std::string const &s);
 std::shared_ptr<json_object> parse_json_string(std::shared_ptr<std::vector<std::string>> json_string);
 
 inline std::ostream& operator<<(std::ostream &cout, json_object const &my_obj)
